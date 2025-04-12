@@ -34,6 +34,9 @@ type Mutation {
   # Comment mutations
   createComment(input: CommentInput!): Comment!
   deleteComment(id: ID!): ID!
+
+  # For Likes (as an example)
+  likePost(id: ID!, userId: ID!): Post!
 }
 
 # Types for User
@@ -110,6 +113,14 @@ type Post {
   publishDate: String!
   owner: User!
   comments: [Comment!]
+  hasLiked(userId: ID!): Boolean
+}
+
+type Like {
+  id: ID!
+  userId: ID!
+  postId: ID!
+  createdAt: String!
 }
 
 type PostList {
@@ -154,4 +165,21 @@ input CommentInput {
   message: String!
   owner: ID!
   post: ID!
+}
+
+type Subscription {
+  # User subscriptions
+  userCreated: User!
+  userUpdated: User!
+  userDeleted: ID!
+  
+  # Post subscriptions
+  postCreated: Post!
+  postUpdated: Post!
+  postDeleted: ID!
+  postLiked: Post!
+  
+  # Comment subscriptions
+  commentCreated(postId: ID): Comment!
+  commentDeleted: ID!
 }

@@ -1,10 +1,56 @@
-import React, { useState } from 'react';
-import { ApolloClient, InMemoryCache, ApolloProvider, useQuery, useLazyQuery, useMutation } from '@apollo/client';
+import React, { useState, useEffect } from 'react';
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  useQuery,
+  useLazyQuery,
+  useMutation,
+  useSubscription,
+  split,
+  HttpLink
+} from '@apollo/client';
+import { getMainDefinition } from '@apollo/client/utilities';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient } from 'graphql-ws';
 import { gql } from 'graphql-tag';
 import './App.css';
 
+const httpLink = new HttpLink({
+  uri: 'http://localhost:4000/graphql'
+});
+
+const wsLink = new GraphQLWsLink(createClient({
+  url: 'ws://localhost:4000/graphql',
+  keepAlive: 5000,
+  connectionParams: {
+    reconnect: true,
+    connectionCallback: (err) => {
+      if (err) console.error("WebSocket connection error:", err);
+    }
+  },
+  on: {
+    connected: () => console.log("🔗 WebSocket connected"),
+    closed: () => console.log("🔌 WebSocket closed"),
+    error: (err) => console.error("💥 WebSocket error:", err)
+  }
+}));
+
+const splitLink = split(
+  ({ query }) => {
+    const definition = getMainDefinition(query);
+    return (
+      definition.kind === 'OperationDefinition' &&
+      definition.operation === 'subscription'
+    );
+  },
+  wsLink,
+  httpLink
+);
+
+
 const client = new ApolloClient({
-  uri: 'http://localhost:4000/graphql',
+  link: splitLink,
   cache: new InMemoryCache()
 });
 
@@ -58,11 +104,83 @@ const CREATE_POST = gql`
   }
 `;
 
-function PostCard({ post }) {
+const LIKE_POST = gql`
+  mutation LikePost($id: ID!, $userId: ID!) {
+    likePost(id: $id, userId: $userId) {
+      id
+      likes
+    }
+  }
+`;
+
+const POST_CREATED_SUBSCRIPTION = gql`
+  subscription OnPostCreated {
+    postCreated {
+      id
+      text
+      image
+      likes
+      tags
+      publishDate
+      owner {
+        id
+        firstName
+        lastName
+        picture
+      }
+      comments {
+        id
+      }
+    }
+  }
+`;
+
+const COMMENT_CREATED_SUBSCRIPTION = gql`
+  subscription OnCommentCreated($postId: ID) {
+    commentCreated(postId: $postId) {
+      id
+      message
+      publishDate
+      owner {
+        id
+        firstName
+        lastName
+      }
+      post {
+        id
+      }
+    }
+  }
+`;
+
+const POST_LIKED_SUBSCRIPTION = gql`
+  subscription OnPostLiked {
+    postLiked {
+      id
+      likes
+    }
+  }
+`;
+
+function PostCard({ post, currentUserId }) {
   const [showComments, setShowComments] = useState(false);
   const [fetchComments, { data: commentData, loading: commentsLoading }] = useLazyQuery(GET_COMMENTS, {
     variables: { postId: post.id },
   });
+
+  const [likedByCurrentUser, setLikedByCurrentUser] = useState(false);
+  const [likePost] = useMutation(LIKE_POST);
+
+  const { data: newCommentData } = useSubscription(COMMENT_CREATED_SUBSCRIPTION, {
+    variables: { postId: post.id },
+    skip: !showComments
+  });
+
+  useEffect(() => {
+    if (newCommentData?.commentCreated && showComments) {
+      fetchComments();
+    }
+  }, [newCommentData, fetchComments, showComments]);
 
   const formattedDate = new Date(post.publishDate).toLocaleDateString(undefined, {
     year: 'numeric',
@@ -77,6 +195,13 @@ function PostCard({ post }) {
       fetchComments();
     }
     setShowComments(!showComments);
+  };
+
+  const handleLikePost = () => {
+    likePost({ variables: { id: post.id, userId: currentUserId } })
+      .then(() => {
+        setLikedByCurrentUser(!likedByCurrentUser);
+      });
   };
 
   return (
@@ -101,11 +226,14 @@ function PostCard({ post }) {
 
       <div className="post-footer">
         <div className="likes">
-          <span role="img" aria-label="heart">❤️</span> {post.likes} likes
+          <button onClick={handleLikePost} className="like-button">
+            <span role="img" aria-label="heart">❤️</span>
+          </button>
+          {post.likes} likes
         </div>
         <div className="tags">
-          {post.tags.map(tag => (
-            <span key={tag} className="tag">#{tag}</span>
+          {post.tags.map((tag, index) => (
+            <span key={`${tag}-${index}`} className="tag">#{tag}</span>
           ))}
         </div>
         <div className="comments-count">
@@ -137,14 +265,43 @@ function PostCard({ post }) {
 
 function PostList() {
   const [page, setPage] = useState(1);
-  const { loading, error, data, refetch } = useQuery(GET_POSTS, {
+  const [posts, setPosts] = useState([]);
+  const [totalPosts, setTotalPosts] = useState(0);
+  const [currentLimit, setCurrentLimit] = useState(5);
+
+  const [showNewPostNotification, setShowNewPostNotification] = useState({
+    visible: false,
+    author: ''
+  });
+
+  const { data, refetch } = useQuery(GET_POSTS, {
     variables: { page, limit: 5 }
   });
 
-  if (loading) return <div className="loading">Loading posts...</div>;
-  if (error) return <div className="loading">Error: {error.message}</div>;
+  useEffect(() => {
+    if (data) {
+      setPosts(data.posts.data);
+      setTotalPosts(data.posts.total);
+      setCurrentLimit(data.posts.limit);
+    }
+  }, [data]);
 
-  const totalPages = Math.ceil(data.posts.total / data.posts.limit);
+  const { data: subData } = useSubscription(POST_CREATED_SUBSCRIPTION);
+  useEffect(() => {
+    if (subData?.postCreated) {
+      setPosts(prevPosts => [subData.postCreated, ...prevPosts]);
+      setTotalPosts(prev => prev + 1);
+      setShowNewPostNotification({
+        visible: true,
+        author: `${subData.postCreated.owner.firstName} ${subData.postCreated.owner.lastName}`
+      });
+      setTimeout(() => {
+        setShowNewPostNotification(prev => ({ ...prev, visible: false }));
+      }, 3000);
+    }
+  }, [subData]);
+
+  const totalPages = Math.ceil(totalPosts / currentLimit);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -155,29 +312,30 @@ function PostList() {
 
   return (
     <div className="post-list">
+      {showNewPostNotification.visible && (
+        <div className="new-post-notification">
+          New post by {showNewPostNotification.author}!
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Recent Posts</h2>
-        <button onClick={() => refetch()}>
-          Refresh
-        </button>
+        <button onClick={() => refetch()}>Refresh</button>
       </div>
 
-      {data.posts.data.map(post => (
-        <PostCard key={post.id} post={post} />
+      {posts.map(post => (
+        <PostCard
+          key={post.id}
+          post={post}
+          currentUserId={posts[0]?.owner?.id}
+        />
       ))}
 
       <div className="pagination">
-        <p>Showing {data.posts.data.length} of {data.posts.total} posts</p>
-        <p>Page {data.posts.page} of {totalPages}</p>
-
+        <p>Showing {posts.length} of {totalPosts} posts</p>
+        <p>Page {page} of {totalPages}</p>
         <div className="pagination-controls">
-          <button
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1}
-          >
-            &lt;
-          </button>
-
+          <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>&lt;</button>
           {[...Array(Math.min(totalPages, 5)).keys()].map(index => {
             const pageNum = index + 1;
             return (
@@ -193,13 +351,7 @@ function PostList() {
               </button>
             );
           })}
-
-          <button
-            onClick={() => handlePageChange(page + 1)}
-            disabled={page === totalPages}
-          >
-            &gt;
-          </button>
+          <button onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>&gt;</button>
         </div>
       </div>
     </div>

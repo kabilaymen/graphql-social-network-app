@@ -1,5 +1,6 @@
 {
   "name": "server",
+  "type": "module",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,7 +12,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@graphql-tools/schema": "^10.0.23",
     "apollo-server": "^3.13.0",
-    "graphql": "^16.10.0"
+    "apollo-server-express": "^3.13.0",
+    "express": "^4.21.2",
+    "graphql": "^16.10.0",
+    "graphql-subscriptions": "^2.0.0",
+    "graphql-ws": "^6.0.4",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.1"
   }
 }
