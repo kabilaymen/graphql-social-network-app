@@ -30,9 +30,9 @@ const wsLink = new GraphQLWsLink(createClient({
     }
   },
   on: {
-    connected: () => console.log("🔗 WebSocket connected"),
-    closed: () => console.log("🔌 WebSocket closed"),
-    error: (err) => console.error("💥 WebSocket error:", err)
+    connected: () => console.log("WebSocket connected"),
+    closed: () => console.log("WebSocket closed"),
+    error: (err) => console.error("WebSocket error:", err)
   }
 }));
 
