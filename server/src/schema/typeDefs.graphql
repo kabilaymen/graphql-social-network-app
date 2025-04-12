@@ -1,0 +1,157 @@
+# GraphQL Schema for Social Network
+
+type Query {
+  # User queries
+  users(page: Int, limit: Int, sortBy: String): UserList!
+  user(id: ID!): User
+  
+  # Post queries
+  posts(page: Int, limit: Int, sortBy: String): PostList!
+  postsByUser(userId: ID!, page: Int, limit: Int): PostList!
+  postsByTag(tag: String!, page: Int, limit: Int): PostList!
+  post(id: ID!): Post
+  
+  # Comment queries
+  comments(page: Int, limit: Int): CommentList!
+  commentsByPost(postId: ID!, page: Int, limit: Int): CommentList!
+  commentsByUser(userId: ID!, page: Int, limit: Int): CommentList!
+  
+  # Tag queries
+  tags: [String!]!
+}
+
+type Mutation {
+  # User mutations
+  createUser(input: UserInput!): User!
+  updateUser(id: ID!, input: UserUpdateInput!): User!
+  deleteUser(id: ID!): ID!
+  
+  # Post mutations
+  createPost(input: PostInput!): Post!
+  updatePost(id: ID!, input: PostUpdateInput!): Post!
+  deletePost(id: ID!): ID!
+  
+  # Comment mutations
+  createComment(input: CommentInput!): Comment!
+  deleteComment(id: ID!): ID!
+}
+
+# Types for User
+type User {
+  id: ID!
+  title: String
+  firstName: String!
+  lastName: String!
+  gender: String
+  email: String!
+  dateOfBirth: String
+  registerDate: String!
+  phone: String
+  picture: String
+  location: Location
+  posts: [Post!]
+  comments: [Comment!]
+}
+
+type Location {
+  street: String!
+  city: String!
+  state: String!
+  country: String!
+  timezone: String!
+}
+
+type UserList {
+  data: [User!]!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
+input UserInput {
+  title: String
+  firstName: String!
+  lastName: String!
+  gender: String
+  email: String!
+  dateOfBirth: String
+  phone: String
+  picture: String
+  location: LocationInput
+}
+
+input UserUpdateInput {
+  title: String
+  firstName: String
+  lastName: String
+  gender: String
+  dateOfBirth: String
+  phone: String
+  picture: String
+  location: LocationInput
+}
+
+input LocationInput {
+  street: String!
+  city: String!
+  state: String!
+  country: String!
+  timezone: String!
+}
+
+# Types for Post
+type Post {
+  id: ID!
+  text: String!
+  image: String
+  likes: Int!
+  link: String
+  tags: [String!]
+  publishDate: String!
+  owner: User!
+  comments: [Comment!]
+}
+
+type PostList {
+  data: [Post!]!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
+input PostInput {
+  text: String!
+  image: String
+  tags: [String!]
+  owner: ID!
+}
+
+input PostUpdateInput {
+  text: String
+  image: String
+  likes: Int
+  link: String
+  tags: [String!]
+}
+
+# Types for Comment
+type Comment {
+  id: ID!
+  message: String!
+  owner: User!
+  post: Post!
+  publishDate: String!
+}
+
+type CommentList {
+  data: [Comment!]!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
+input CommentInput {
+  message: String!
+  owner: ID!
+  post: ID!
+}

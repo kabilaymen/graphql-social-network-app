@@ -1,0 +1,367 @@
+/* Global styles and variables */
+:root {
+  --primary-gold: #d4af37;
+  --gold-light: #f1e5c4;
+  --gold-dark: #b8860b;
+  --white: #ffffff;
+  --off-white: #f9f9f9;
+  --light-gray: #f0f0f0;
+  --medium-gray: #e0e0e0;
+  --dark-gray: #666666;
+  --text-primary: #333333;
+  --text-secondary: #777777;
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --radius-small: 6px;
+  --radius-medium: 12px;
+  --radius-large: 20px;
+  --font-main: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--light-gray);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* Main App Container */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header Styling */
+header {
+  background-color: var(--white);
+  box-shadow: var(--shadow-soft);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--gold-light);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold-dark);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.logo-icon {
+  color: var(--primary-gold);
+  margin-right: 8px;
+}
+
+/* Main Content Area */
+main {
+  margin-top: 70px;
+  max-width: 1200px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 2.5fr;
+  gap: 20px;
+}
+
+@media (max-width: 992px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sidebar */
+.sidebar {
+  position: sticky;
+  top: 90px;
+  align-self: start;
+}
+
+/* Make Sidebar non-sticky on small screens */
+@media (max-width: 1000px) {
+  .sidebar {
+    position: relative;
+    top: auto;
+  }
+}
+
+/* Create Post Form */
+.create-post {
+  background-color: var(--white);
+  border-radius: var(--radius-medium);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--gold-light);
+}
+
+.create-post h2 {
+  font-size: 18px;
+  color: var(--gold-dark);
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+textarea, input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--radius-small);
+  font-family: inherit;
+  resize: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+textarea:focus, input:focus {
+  outline: none;
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+button {
+  background-color: var(--primary-gold);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-small);
+  padding: 12px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: var(--gold-dark);
+}
+
+button:disabled {
+  background-color: var(--medium-gray);
+  cursor: not-allowed;
+}
+
+/* Post List */
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.post-list h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--gold-dark);
+  margin-bottom: 15px;
+}
+
+.post-list button {
+  align-self: flex-end;
+  background-color: transparent;
+  color: var(--primary-gold);
+  border: 1px solid var(--primary-gold);
+  padding: 8px 16px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.post-list button:hover {
+  background-color: var(--gold-light);
+  color: var(--gold-dark);
+}
+
+/* Post Card */
+.post-card {
+  background-color: var(--white);
+  border-radius: var(--radius-medium);
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow 0.3s;
+  border: 1px solid var(--medium-gray);
+}
+
+.post-card:hover {
+  box-shadow: var(--shadow-medium);
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  margin-right: 12px;
+  border: 2px solid var(--gold-light);
+  object-fit: cover;
+}
+
+.post-header div {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.date {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.post-text {
+  margin-bottom: 15px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.post-image {
+  width: 100%;
+  max-height: 500px;
+  object-fit: cover;
+  border-radius: var(--radius-small);
+  margin-bottom: 15px;
+}
+
+.post-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--medium-gray);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.likes {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background-color: var(--gold-light);
+  color: var(--gold-dark);
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.comments-count button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0;
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.comments-count button:hover {
+  color: var(--primary-gold);
+  background: none;
+}
+
+/* Comments Section */
+.comments-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--medium-gray);
+}
+
+.comment {
+  padding: 10px;
+  background-color: var(--off-white);
+  border-radius: var(--radius-small);
+  margin-bottom: 10px;
+}
+
+.comment p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Pagination */
+.pagination {
+  margin-top: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.pagination-controls button {
+  background-color: var(--white);
+  color: var(--primary-gold);
+  border: 1px solid var(--primary-gold);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.pagination-controls button:hover {
+  background-color: var(--gold-light);
+}
+
+/* Loading States */
+.loading {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-secondary);
+}
